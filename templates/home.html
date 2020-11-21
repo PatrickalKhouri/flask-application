@@ -1,0 +1,14 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <h1>Home Page</h1>
+    {% for product in products %}
+      <h3>{{ product.description }}</h3>
+      <p>Size: {{product.width}} x {{product.height}}, {{product.m2}}m2</p>
+      <p>From: {{product.country}} </p>
+      <p>Price: R${{product.price}}</p>
+      <p>Quantity left: {{product.quantity}}</p>
+    {% endfor %}
+  </body>
+</html>
