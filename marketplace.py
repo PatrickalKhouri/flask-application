@@ -1,42 +1,27 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, flash, redirect  
 from forms import RegistrationForm, LoginForm
+from flask_pymongo import PyMongo
+
 app = Flask(__name__)
+
+app.config["MONGO_URI"] = "mongodb+srv://Patrickdarya:dHtuTbVuJSRVt2L2@cluster0.g3erp.mongodb.net/mydb?retryWrites=true&w=majority"
+
+mongo = PyMongo(app)
+db = mongo.db
+mycol = db["users"]
+
+users_collection = db.users
+products_collection = db.products
 
 app.config['SECRET_KEY'] = '23b8868cf282837c556e88fd2c41cb'
 
-products = [
-    {
-       'reference': 'NK 212',
-       'country': 'India',
-       'type':'kilim',
-       'height': 2,
-       'width': 1.5,
-       'm2': 3,
-       'quantity': 5,
-       'price': 1000,
-       'description': 'Kilim Indian - Red',
-       'Images': "...",
-       'created_at':'November 20, 2019'
-    },
-    {
-       'reference': 'HZ 0156',
-       'country': 'Afganistan',
-       'type':'carpet',
-       'height': 5,
-       'width': 4,
-       'm2': 20,
-       'quantity': 3,
-       'price': 12000,
-       'description': 'Large colorfull carpet',
-       'Images': "...",
-       'created_at':'November 10, 2019'
-    }
-]
+products = []
 
 @app.route('/')
 @app.route('/home')
 def home():
     return render_template('home.html', products=products)
+    
 
 @app.route('/about')
 def about():
@@ -46,7 +31,7 @@ def about():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        flash(f'Account created for {form.username.data}!', 'success')
+        users_collection.insert_one({'username': form.username.data})
         return redirect(url_for('home'))
     return render_template('register.html', title='Register', form=form)
 
