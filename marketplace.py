@@ -76,3 +76,9 @@ def new_product():
          flash('Product created!', 'success')
          return redirect(url_for('home'))
     return render_template('create_product.html', title='New Product', form=form)
+
+@app.route("/product/<product_title>")
+def product(product_title):
+    product =  products_collection.find({"title": product_title})
+    return render_template('product.html', title=product.title, product=product)
+
