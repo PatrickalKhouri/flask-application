@@ -69,6 +69,9 @@ def account():
 def new_product():
     form = ProductForm()
     if form.validate_on_submit():
+         products_collection.insert_one({'title': form.title.data, 'author': form.author.data, 'editor': form.editor.data, 
+                                        'year_published': form.year_published.data, 'price': form.price.data , 'quantity': form.quantity.data,
+                                        'summary': form.summary.data})
          flash('Product created!', 'success')
          return redirect(url_for('home'))
     return render_template('create_product.html', title='New Product', form=form)
