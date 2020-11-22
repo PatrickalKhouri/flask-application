@@ -1,15 +1,16 @@
 {% extends "layout.html" %}
 {% block content %}
 
-{% for product in products %}
+{% for product in products.find() %}
 <article class="media content-section">
   <div class="media-body">
-    <h2><a class="article-title" href="#">{{ product.description }}</a></h2>
+    <h2><a class="article-title" href="{{ url_for('product', product_title=product.title) }}">{{ product.title }}</a></h2>
     <div class="article-content"></div>
-    <p>Size: {{product.width}} x {{product.height}}, {{product.m2}}m2</p>
-    <p>From: {{product.country}} </p>
-    <p>Price: R${{product.price}}</p>
-    <p>Quantity left: {{product.quantity}}</p>
+  <p>Written by {{product.author}}, published by {{product.editor}}. Year: {{product.year_published}}</p>
+  <p>{{ product.summary }}</p>
+  <p>R$ {{product.price}}</p>
+  <p>{{product.quantity}} in stock</p>
+  <p class="btn btn-primary">Buy</p>
   </div>
 </article>
 {% endfor %}

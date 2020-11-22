@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_pymongo import PyMongo
@@ -39,3 +39,16 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
+
+class ProductForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    author = StringField('Author', validators=[DataRequired()])
+    editor = StringField('Editor', validators=[DataRequired()])
+    year_published = StringField('Year Published', validators=[DataRequired(), Length(max=4)])
+    price = IntegerField('Price', validators=[DataRequired()])
+    quantity = IntegerField('Quantity', validators=[DataRequired()])
+    summary = TextAreaField('Summary', validators=[DataRequired(), Length(min=20, max=500)])
+    cover = FileField('Cover', validators=[FileAllowed(['jpg', 'png'])])
+    submit = SubmitField('Add book')
+    
+    
