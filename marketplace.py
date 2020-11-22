@@ -1,20 +1,16 @@
 from flask import Flask, render_template, url_for, flash, redirect  
 from forms import RegistrationForm, LoginForm
 from flask_pymongo import PyMongo
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
-
 app.config["MONGO_URI"] = "mongodb+srv://Patrickdarya:dHtuTbVuJSRVt2L2@cluster0.g3erp.mongodb.net/mydb?retryWrites=true&w=majority"
-
 mongo = PyMongo(app)
 db = mongo.db
-mycol = db["users"]
-
 users_collection = db.users
 products_collection = db.products
-
 app.config['SECRET_KEY'] = '23b8868cf282837c556e88fd2c41cb'
-
+bcrypt = Bcrypt(app)
 products = []
 
 @app.route('/')
@@ -31,8 +27,10 @@ def about():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        users_collection.insert_one({'username': form.username.data, 'email': form.email.data, 'password': form.password.data, 'admin': False })
-        return redirect(url_for('home'))
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8)')
+        users_collection.insert_one({'username': form.username.data, 'email': form.email.data, 'password': hashed_password, 'admin': False })
+        flash('Your account has been created! You are now able to log in', 'success')
+        return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
 
