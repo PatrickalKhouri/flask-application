@@ -31,7 +31,7 @@ def about():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        users_collection.insert_one({'username': form.username.data})
+        users_collection.insert_one({'username': form.username.data, 'email': form.email.data, 'password': form.password.data, 'admin': False })
         return redirect(url_for('home'))
     return render_template('register.html', title='Register', form=form)
 
