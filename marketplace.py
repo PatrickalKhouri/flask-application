@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, flash, redirect
 from forms import RegistrationForm, LoginForm
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb+srv://Patrickdarya:dHtuTbVuJSRVt2L2@cluster0.g3erp.mongodb.net/mydb?retryWrites=true&w=majority"
@@ -11,7 +12,13 @@ users_collection = db.users
 products_collection = db.products
 app.config['SECRET_KEY'] = '23b8868cf282837c556e88fd2c41cb'
 bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 products = []
+
+@login_manager.user_loader
+def load_user(user_id):
+	return None
 
 @app.route('/')
 @app.route('/home')
@@ -38,9 +45,21 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        if form.email.data == 'admin@blog.com' and form.password.data == 'password':
-            flash('You have been logged in!', 'success')
+        user = users_collection.find({"email": form.email.data})
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
             return redirect(url_for('home'))
         else:
-            flash('Login Unsuccessful. Please check username and password', 'danger')
+            flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+
+@app.route("/account")
+@login_required
+def account():
+    return render_template('account.html', title='Account')
