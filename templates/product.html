@@ -8,7 +8,8 @@
   <p>{{ product.summary }}</p>
   <p>R$ {{product.price}}</p>
   <p>{{product.quantity}} in stock</p>
-  <p class="btn btn-primary">Buy</p>
+  <a class="btn btn-primary" href="{{ url_for('update_product', product_title=product.title) }}">Edit</a>
+  <a class="btn btn-primary" >Delete</a> 
   </div>
 </article>
 {% endblock content %}

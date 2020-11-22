@@ -46,7 +46,7 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = users_collection.find({"email": form.email.data})
+        user = users_collection.find_one({"email": form.email.data})
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             return redirect(url_for('home'))
@@ -75,10 +75,21 @@ def new_product():
                                         'summary': form.summary.data})
          flash('Product created!', 'success')
          return redirect(url_for('home'))
-    return render_template('create_product.html', title='New Product', form=form)
+    return render_template('create_product.html', title='New Product', form=form, legend="Update Product")
 
 @app.route("/product/<product_title>")
 def product(product_title):
-    product =  products_collection.find({"title": product_title})
-    return render_template('product.html', title=product.title, product=product)
+    product =  products_collection.find_one({"title": product_title})
+    return render_template('product.html', title=product["title"], product=product)
 
+@app.route("/product/<product_title>/update", methods=['GET', 'POST'])
+def update_product(product_title):
+    product =  products_collection.find_one({"title": product_title})
+    form = ProductForm()
+    if form.validate_on_submit():
+         products_collection.update( products_collection.find_one({"title": product_title}), {'title': form.title.data, 'author': form.author.data, 'editor': form.editor.data, 
+                                        'year_published': form.year_published.data, 'price': form.price.data , 'quantity': form.quantity.data,
+                                        'summary': form.summary.data})
+         flash('Product updated!', 'success')
+         return redirect(url_for('home'))
+    return render_template('create_product.html', title='Update', form=form, legend="Update Product")
