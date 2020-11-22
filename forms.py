@@ -1,6 +1,14 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
+from flask_pymongo import PyMongo
+from flask import Flask
+
+app = Flask(__name__)
+app.config["MONGO_URI"] = "mongodb+srv://Patrickdarya:dHtuTbVuJSRVt2L2@cluster0.g3erp.mongodb.net/mydb?retryWrites=true&w=majority"
+mongo = PyMongo(app)
+db = mongo.db
+users_collection = db.users
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username',
@@ -11,6 +19,16 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
+
+    def validate_username(self, username):
+        user = users_collection.find({"username": username})
+        if user:
+            raise ValidationError('Username already exists')
+
+    def validate_email(self, email):
+        email = users_collection.find({"email": email})
+        if email:
+            raise ValidationError('Email already exists')
 
 
 class LoginForm(FlaskForm):
