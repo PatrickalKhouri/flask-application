@@ -23,6 +23,7 @@ def load_user(user_id):
 @app.route('/')
 @app.route('/home')
 def home():
+    products = products_collection
     return render_template('home.html', products=products)
     
 
