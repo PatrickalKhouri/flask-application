@@ -93,3 +93,12 @@ def update_product(product_title):
          flash('Product updated!', 'success')
          return redirect(url_for('home'))
     return render_template('create_product.html', title='Update', form=form, legend="Update Product")
+
+
+@app.route("/product/<product_title>/delete", methods=['POST'])
+def delete_product(product_title):
+    product =  products_collection.find_one({"title": product_title})
+    products_collection.delete_one( products_collection.find_one({"title": product_title}) )
+    flash('Product deleted', 'success')
+    return redirect(url_for('home'))
+
