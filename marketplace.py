@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, flash, redirect  
-from forms import RegistrationForm, LoginForm
+from forms import RegistrationForm, LoginForm, ProductForm
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
@@ -64,3 +64,11 @@ def logout():
 def account():
     image_file = url_for('static', filename='user_images/avatar.jpg')
     return render_template('account.html', title='Account', image_file=image_file)
+
+@app.route("/products/new", methods=['GET', 'POST'])
+def new_product():
+    form = ProductForm()
+    if form.validate_on_submit():
+         flash('Product created!', 'success')
+         return redirect(url_for('home'))
+    return render_template('create_product.html', title='New Product', form=form)
