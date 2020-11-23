@@ -1,4 +1,5 @@
 import logging
+import os
 
 from uuid import uuid4
 
@@ -11,12 +12,12 @@ from models import User
 from logging import FileHandler, WARNING
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://Patrickdarya:dHtuTbVuJSRVt2L2@cluster0.g3erp.mongodb.net/mydb?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = os.environ.get('DB_URL')
 mongo = PyMongo(app)
 db = mongo.db
 users_collection = db.users
 products_collection = db.products
-app.config['SECRET_KEY'] = '23b8868cf282837c556e88fd2c41cb'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -24,11 +25,6 @@ file_hander = FileHandler('errorlog.txt')
 file_hander.setLevel(WARNING)
 
 app.logger.setLevel(logging.DEBUG)
-
-@login_manager.user_loader
-def load_user(user_id):
-	return None
-
 
 @app.route('/')
 @app.route('/home')

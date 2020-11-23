@@ -1,3 +1,5 @@
+import os
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField
 from flask_wtf.file import FileField, FileAllowed
@@ -6,7 +8,7 @@ from flask_pymongo import PyMongo
 from flask import Flask
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://Patrickdarya:dHtuTbVuJSRVt2L2@cluster0.g3erp.mongodb.net/mydb?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = os.environ.get('DB_URL')
 mongo = PyMongo(app)
 db = mongo.db
 users_collection = db.users
@@ -50,5 +52,3 @@ class ProductForm(FlaskForm):
     summary = TextAreaField('Summary', validators=[DataRequired(), Length(min=20, max=500)])
     cover = FileField('Cover', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Add book')
-    
-    
