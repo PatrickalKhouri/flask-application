@@ -23,12 +23,12 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Sign Up')
 
     def validate_username(self, username):
-        user = users_collection.find({"username": username})
+        user = users_collection.find({"username": username.data}).count()
         if user:
             raise ValidationError('Username already exists')
 
     def validate_email(self, email):
-        email = users_collection.find({"email": email})
+        email = users_collection.find({"email": email.data}).count()
         if email:
             raise ValidationError('Email already exists')
 

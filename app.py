@@ -1,8 +1,13 @@
-from flask import Flask, render_template, url_for, flash, redirect  
+import logging
+
+from uuid import uuid4
+
+from flask import Flask, render_template, url_for, flash, redirect
 from forms import RegistrationForm, LoginForm, ProductForm
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from flask_login import LoginManager, login_user, logout_user, login_required
+from models import User
 from logging import FileHandler, WARNING
 
 app = Flask(__name__)
@@ -18,11 +23,12 @@ login_manager.login_view = 'login'
 file_hander = FileHandler('errorlog.txt')
 file_hander.setLevel(WARNING)
 
-app.logger.addHandler(file_hander)
+app.logger.setLevel(logging.DEBUG)
 
 @login_manager.user_loader
 def load_user(user_id):
 	return None
+
 
 @app.route('/')
 @app.route('/home')
@@ -35,17 +41,29 @@ def home():
 def about():
     return render_template('about.html', title='About')
 
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        user = User(users_collection.find_one({"uuid": user_id}))
+        return user
+    except:
+        return None
+
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8)')
-        users_collection.insert_one({'username': form.username.data, 'email': form.email.data, 'password': hashed_password, 'admin': False })
+        user = User(form.data)
+        user.set_password(form.data['password'])
+        user.save()
+        #users_collection.insert_one({'uuid': uuid4().int, 'username': form.username.data, 'email': form.email.data, 'password': hashed_password, 'admin': False })
         flash('Your account has been created! You are now able to log in', 'success')
-        app.logger.info('new user created sucessfully')
+        app.logger.info('New user created sucessfully')
         return redirect(url_for('login'))
     else:
-        app.logger.info('new user not created, error')
+        app.logger.info('New user not created, error')
     return render_template('register.html', title='Register', form=form)
 
 
@@ -54,7 +72,11 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = users_collection.find_one({"email": form.email.data})
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
+        if user:
+            user = User(user)
+        else:
+            app.logger.info('User not found.')
+        if user and user.check_password(form.password.data.encode('utf-8')):
             login_user(user, remember=form.remember.data)
             app.logger.info('Login Sucessfull')
             return redirect(url_for('home'))
@@ -62,6 +84,7 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
             app.logger.info('Login Failed')
     return render_template('login.html', title='Login', form=form)
+
 
 @app.route("/logout")
 def logout():
@@ -74,6 +97,7 @@ def logout():
 def account():
     image_file = url_for('static', filename='user_images/avatar.jpg')
     return render_template('account.html', title='Account', image_file=image_file)
+
 
 @app.route("/products/new", methods=['GET', 'POST'])
 def new_product():
@@ -89,12 +113,15 @@ def new_product():
         app.logger.info('PRODUCT NOT CREATED, ERROR')
     return render_template('create_product.html', title='New Product', form=form, legend="Update Product")
 
+
 @app.route("/product/<product_title>")
 def product(product_title):
     product =  products_collection.find_one({"title": product_title})
     return render_template('product.html', title=product["title"], product=product)
 
+
 @app.route("/product/<product_title>/update", methods=['GET', 'POST'])
+@login_required
 def update_product(product_title):
     product =  products_collection.find_one({"title": product_title})
     form = ProductForm()
@@ -111,10 +138,10 @@ def update_product(product_title):
 
 
 @app.route("/product/<product_title>/delete", methods=['POST'])
+@login_required
 def delete_product(product_title):
     product =  products_collection.find_one({"title": product_title})
     products_collection.delete_one( products_collection.find_one({"title": product_title}) )
     flash('Product deleted', 'success')
     app.logger.info('Product Deleted Sucessfully')
     return redirect(url_for('home'))
-
