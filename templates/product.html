@@ -8,8 +8,10 @@
   <p>{{ product.summary }}</p>
   <p>R$ {{product.price}}</p>
   <p>{{product.quantity}} in stock</p>
+  {% if current_user.is_authenticated and current_user.admin %}
   <a class="btn btn-primary" href="{{ url_for('update_product', product_title=product.title) }}">Edit</a>
   <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete</button> 
+  {% endif %}
   </div>
 </article>
 
