@@ -3,6 +3,7 @@ from forms import RegistrationForm, LoginForm, ProductForm
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from logging import FileHandler, WARNING
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb+srv://Patrickdarya:dHtuTbVuJSRVt2L2@cluster0.g3erp.mongodb.net/mydb?retryWrites=true&w=majority"
@@ -14,7 +15,10 @@ app.config['SECRET_KEY'] = '23b8868cf282837c556e88fd2c41cb'
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-products = []
+file_hander = FileHandler('errorlog.txt')
+file_hander.setLevel(WARNING)
+
+app.logger.addHandler(file_hander)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -38,7 +42,10 @@ def register():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8)')
         users_collection.insert_one({'username': form.username.data, 'email': form.email.data, 'password': hashed_password, 'admin': False })
         flash('Your account has been created! You are now able to log in', 'success')
+        app.logger.info('new user created sucessfully')
         return redirect(url_for('login'))
+    else:
+        app.logger.info('new user not created, error')
     return render_template('register.html', title='Register', form=form)
 
 
@@ -47,11 +54,13 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = users_collection.find_one({"email": form.email.data})
-        if user and bcrypt.check_password_hash( form.password.data.encode('utf-8'), user["password"]):
-                login_user(user, remember=form.remember.data)
-                return redirect(url_for('home'))
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            app.logger.info('Login Sucessfull')
+            return redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
+            app.logger.info('Login Failed')
     return render_template('login.html', title='Login', form=form)
 
 @app.route("/logout")
@@ -74,7 +83,10 @@ def new_product():
                                         'year_published': form.year_published.data, 'price': form.price.data , 'quantity': form.quantity.data,
                                         'summary': form.summary.data})
          flash('Product created!', 'success')
+         app.logger.info('Product Created Sucessfully')
          return redirect(url_for('home'))
+    else: 
+        app.logger.info('PRODUCT NOT CREATED, ERROR')
     return render_template('create_product.html', title='New Product', form=form, legend="Update Product")
 
 @app.route("/product/<product_title>")
@@ -91,7 +103,10 @@ def update_product(product_title):
                                         'year_published': form.year_published.data, 'price': form.price.data , 'quantity': form.quantity.data,
                                         'summary': form.summary.data})
          flash('Product updated!', 'success')
+         app.logger.info('Product Updated Sucessfully')
          return redirect(url_for('home'))
+    else:
+        app.logger.info('PRODUCT NOT UPDATED, ERROR')
     return render_template('create_product.html', title='Update', form=form, legend="Update Product")
 
 
@@ -100,5 +115,6 @@ def delete_product(product_title):
     product =  products_collection.find_one({"title": product_title})
     products_collection.delete_one( products_collection.find_one({"title": product_title}) )
     flash('Product deleted', 'success')
+    app.logger.info('Product Deleted Sucessfully')
     return redirect(url_for('home'))
 
