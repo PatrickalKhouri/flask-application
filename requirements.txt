@@ -1,5 +1,7 @@
+flask
 flask_pymongo
 flask_bcrypt
 flask_login
 flask_wtf
-uuid
+dnspython
+flask_user
