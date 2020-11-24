@@ -50,5 +50,5 @@ class ProductForm(FlaskForm):
     price = IntegerField('Price', validators=[DataRequired()])
     quantity = IntegerField('Quantity', validators=[DataRequired()])
     summary = TextAreaField('Summary', validators=[DataRequired(), Length(min=20, max=500)])
-    cover = FileField('Cover', validators=[FileAllowed(['jpg', 'png'])])
+    cover = FileField('Cover', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField('Add book')
